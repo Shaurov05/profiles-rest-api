@@ -53,6 +53,8 @@ class HelloApiView(APIView):
 
 class HelloViewSet(viewsets.ViewSet):
 
+    serializer_class = HelloSerializer
+
     def list(self, request):
         """Return a hellow message"""
         a_viewset = [
@@ -62,7 +64,30 @@ class HelloViewSet(viewsets.ViewSet):
         ]
         return Response({'message':"Hello", 'a_viewset':a_viewset})
 
+    def create(self, request):
+        serializer = self.serializer_class(data=request.data)
 
+        if serializer.is_valid():
+            name = serializer.validated_data.get('name')
+            message = f'Hello {name} from ViewSet'
+            return Response({'message':message})
+        else:
+            return Response(
+                serializer.errors,
+                status=status.HTTP_404_BAD_REQUEST
+            )
+
+    def retrieve(self, request, pk=None):
+        return Response({"http_method":"Get"})
+
+    def update(self, request, pk=None):
+        return Response({"http_method":"put"})
+
+    def partial_update(self, request, pk=None):
+        return Response({"http_method":"Patch"})
+
+    def destroy(self, request, pk=None):
+        return Response({"http_method":"delete"})
 
 
 
