@@ -7,6 +7,10 @@ from rest_framework import viewsets
 
 from rest_framework import status
 from . serializers import HelloSerializer
+from . import models
+from . import serializers
+from rest_framework.authentication import TokenAuthentication
+from . import permissions
 # Create your views here.
 
 
@@ -88,6 +92,26 @@ class HelloViewSet(viewsets.ViewSet):
 
     def destroy(self, request, pk=None):
         return Response({"http_method":"delete"})
+
+
+
+class UserProfileViewSet(viewsets.ModelViewSet):
+    """ handle creating and updating profiles """
+    serializer_class = serializers.UserProfileSerializer
+    queryset = models.UserProfile.objects.all()
+
+    authentication_classes = (TokenAuthentication, )
+    permission_classes = (permissions.UpdateOwnProfile,)
+
+
+
+
+
+
+
+
+
+
 
 
 
