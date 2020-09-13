@@ -3,6 +3,8 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from rest_framework import viewsets
+
 from rest_framework import status
 from . serializers import HelloSerializer
 # Create your views here.
@@ -49,9 +51,16 @@ class HelloApiView(APIView):
 
 
 
+class HelloViewSet(viewsets.ViewSet):
 
-
-
+    def list(self, request):
+        """Return a hellow message"""
+        a_viewset = [
+            'uses action (list, createm retrieve, update, partial_update)',
+            'Automatically maps to URLs using Routers',
+            'provides more functionality with less code',
+        ]
+        return Response({'message':"Hello", 'a_viewset':a_viewset})
 
 
 
