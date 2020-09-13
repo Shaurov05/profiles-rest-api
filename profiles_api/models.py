@@ -1,37 +1,53 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser
-from django.contrib.auth.models import PermissionsMixin, BaseUserManager
+from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
+from django.contrib.auth.models import PermissionsMixin
 
-# Create your models here.
 
 class UserProfileManager(BaseUserManager):
-    """ manager for user profile"""
+    """Class required by Django for managing our users from the management
+    command.
+    """
 
     def create_user(self, email, name, password=None):
-        # creating new user profile
+        """Creates a new user with the given detials."""
+
+        # Check that the user provided an email.
         if not email:
-            raise ValueError("user must have an email address")
+            raise ValueError('Users must have an email address.')
 
-        email = self.normalize_email(email)
-        user = self.model(email=email, name=name)
+        # Create a new user object.
+        user = self.model(
+            email=self.normalize_email(email),
+            name=name,
+        )
 
-        # encrypting the password
+        # Set the users password. We use this to create a password
+        # hash instead of storing it in clear text.
         user.set_password(password)
         user.save(using=self._db)
 
         return user
 
     def create_superuser(self, email, name, password):
-        user = self.create_user(email, name, password)
+        """Creates and saves a new superuser with given detials."""
 
-        user.is_staff = True
+        # Create a new user with the function we created above.
+        user = self.create_user(
+            email,
+            name,
+            password
+        )
+
+        # Make this user an admin.
         user.is_superuser = True
+        user.is_staff = True
+        user.save(using=self._db)
 
         return user
 
 
-
 class UserProfile(AbstractBaseUser, PermissionsMixin):
+    """A user profile in our system."""
 
     email = models.EmailField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
@@ -44,10 +60,38 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ['name']
 
     def get_full_name(self):
-        return self.name
+        """
+        Required function so Django knows what to use as the users full name.
+        """
+
+        self.name
 
     def get_short_name(self):
-        return self.name
+        """
+        Required function so Django knows what to use as the users short name.
+        """
+
+        self.name
 
     def __str__(self):
+        """What to show when we output an object as a string."""
+
         return self.email
+
+
+class StatusUpdate(models.Model):
+    """A users status update."""
+
+    user_profile = models.ForeignKey('UserProfile', on_delete=models.CASCADE)
+    status_text = models.CharField(max_length=255)
+    created_on = models.DateTimeField(auto_now_add=True)
+
+
+class Message(models.Model):
+    """A users message from one user to another."""
+
+    sender = models.ForeignKey('UserProfile', related_name='fk_message_sender', on_delete=models.CASCADE)
+    recipient = models.ForeignKey(
+        'UserProfile', related_name='fk_message_recipient',on_delete=models.CASCADE)
+    message = models.CharField(max_length=255)
+    date_sent = models.DateTimeField(auto_now_add=True)
